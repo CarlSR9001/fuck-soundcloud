@@ -62,6 +62,8 @@ export class HealthCheckService {
         'artwork-extract',
         'loudness',
         'analytics-rollup',
+        'fingerprint',
+        'distribution',
       ];
 
       for (const queueName of queueNames) {

@@ -2,6 +2,7 @@ import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { UploadService } from './upload.service';
 import { InitMultipartDto, CompleteMultipartDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { User } from '../../common/decorators';
 
 @Controller('api/v1/upload')
@@ -9,7 +10,7 @@ export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('multipart/init')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RateLimitGuard)
   async initMultipartUpload(@Body() dto: InitMultipartDto, @User('userId') userId: string) {
     return await this.uploadService.initMultipartUpload(dto);
   }

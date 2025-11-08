@@ -3,8 +3,8 @@
  * Handles audio transcoding to HLS Opus format using FFmpeg
  */
 
-import { Job } from 'bullmq';
-import { TranscodeJobData, TranscodeJobResult } from '@soundcloud-clone/shared';
+import { Job, Queue } from 'bullmq';
+import { TranscodeJobData, TranscodeJobResult, FINGERPRINT_JOB } from '@soundcloud-clone/shared';
 import { getDataSource } from '../config/typeorm.config';
 import { StorageService } from '../services/storage.service';
 import { extractMetadata, transcodeToHLS } from '../services/ffmpeg.service';
@@ -17,6 +17,8 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
+import { QueueConfig } from '../config/queue.config';
+import { ConnectionOptions } from 'bullmq';
 
 /**
  * Process transcode job
@@ -143,6 +145,24 @@ export async function processTranscodeJob(
     }
 
     await transcodeRepo.save(transcode);
+    await job.updateProgress(95);
+
+    // Enqueue fingerprint job for copyright protection
+    try {
+      const queueConfig = new QueueConfig();
+      const connection: ConnectionOptions = {
+        host: queueConfig.redis.host,
+        port: queueConfig.redis.port,
+        password: queueConfig.redis.password,
+      };
+      const fingerprintQueue = new Queue(FINGERPRINT_JOB, { connection });
+      await fingerprintQueue.add(FINGERPRINT_JOB, { version_id });
+      console.log(`[Transcode] Enqueued fingerprint job for version ${version_id}`);
+    } catch (error) {
+      console.error(`[Transcode] Failed to enqueue fingerprint job:`, error);
+      // Don't fail the transcode job if fingerprint enqueue fails
+    }
+
     await job.updateProgress(100);
 
     // Cleanup

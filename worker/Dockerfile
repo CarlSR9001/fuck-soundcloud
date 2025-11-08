@@ -3,12 +3,13 @@ FROM node:20.11.1-alpine AS base
 
 WORKDIR /app
 
-# Install FFmpeg, audiowaveform, and essential build tools
+# Install FFmpeg, audiowaveform, Chromaprint, and essential build tools
 RUN apk add --no-cache \
     python3 \
     make \
     g++ \
     ffmpeg \
+    chromaprint \
     libmad \
     libid3tag \
     libsndfile \
@@ -82,6 +83,7 @@ WORKDIR /app
 # Install production runtime dependencies
 RUN apk add --no-cache \
     ffmpeg \
+    chromaprint \
     libmad \
     libid3tag \
     libsndfile \

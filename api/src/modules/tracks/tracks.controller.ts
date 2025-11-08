@@ -6,7 +6,9 @@ import {
   Body,
   Param,
   UseGuards,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { TracksService } from './tracks.service';
 import { CreateTrackDto, UpdateTrackDto, CreateVersionDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -18,8 +20,14 @@ export class TracksController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async create(@Body() dto: CreateTrackDto, @User('userId') ownerId: string) {
-    return await this.tracksService.create(ownerId, dto);
+  async create(
+    @Body() dto: CreateTrackDto,
+    @User('userId') ownerId: string,
+    @Req() req: Request,
+  ) {
+    const ipAddress = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    return await this.tracksService.create(ownerId, dto, ipAddress as string, userAgent);
   }
 
   @Get(':id')

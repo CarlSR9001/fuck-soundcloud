@@ -6,8 +6,26 @@ import {
   IsUUID,
   MaxLength,
   IsArray,
+  IsBoolean,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { TrackVisibility } from '../../../entities';
+
+export class CopyrightAttestationDto {
+  @IsBoolean()
+  attests_ownership: boolean;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  copyright_registration?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(50)
+  isrc_code?: string;
+}
 
 export class CreateTrackDto {
   @IsString()
@@ -42,4 +60,9 @@ export class CreateTrackDto {
   @IsString({ each: true })
   @IsOptional()
   tags?: string[];
+
+  // Copyright attestation (required)
+  @ValidateNested()
+  @Type(() => CopyrightAttestationDto)
+  attestation: CopyrightAttestationDto;
 }

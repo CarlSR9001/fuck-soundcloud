@@ -28,10 +28,22 @@ export function Header() {
           {/* Navigation */}
           <nav className="flex items-center gap-lg">
             <Link
-              href="/health"
+              href="/contribute"
               className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
             >
-              Health
+              Contribute
+            </Link>
+            <Link
+              href="/dashboard"
+              className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/terms"
+              className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+            >
+              Terms
             </Link>
           </nav>
         </div>

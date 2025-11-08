@@ -9,6 +9,7 @@ import {
   TrackVersionStatus,
   Transcode,
   TranscodeFormat,
+  CopyrightAttestation,
 } from '../../entities';
 import { CreateTrackDto, UpdateTrackDto, CreateVersionDto } from './dto';
 import { TagsService } from '../tags/tags.service';
@@ -22,13 +23,20 @@ export class TracksService {
     private versionRepository: Repository<TrackVersion>,
     @InjectRepository(Transcode)
     private transcodeRepository: Repository<Transcode>,
+    @InjectRepository(CopyrightAttestation)
+    private attestationRepository: Repository<CopyrightAttestation>,
     @InjectQueue('transcode') private transcodeQueue: Queue,
     @InjectQueue('waveform') private waveformQueue: Queue,
     private tagsService: TagsService,
   ) {}
 
-  async create(ownerId: string, dto: CreateTrackDto) {
-    const { title, original_asset_id, version_label, tags, ...rest } = dto;
+  async create(
+    ownerId: string,
+    dto: CreateTrackDto,
+    ipAddress: string,
+    userAgent: string,
+  ) {
+    const { title, original_asset_id, version_label, tags, attestation, ...rest } = dto;
 
     // Generate slug from title
     const slug = this.generateSlug(title);
@@ -58,6 +66,18 @@ export class TracksService {
     // Set primary version
     track.primary_version_id = version.id;
     await this.trackRepository.save(track);
+
+    // Create copyright attestation
+    const copyrightAttestation = this.attestationRepository.create({
+      user_id: ownerId,
+      track_id: track.id,
+      attests_ownership: attestation.attests_ownership,
+      copyright_registration: attestation.copyright_registration,
+      isrc_code: attestation.isrc_code,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    });
+    await this.attestationRepository.save(copyrightAttestation);
 
     return { track, version };
   }
