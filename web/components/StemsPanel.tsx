@@ -127,31 +127,31 @@ export function StemsPanel({ versionId, trackOwnerId }: StemsPanelProps) {
     acc[stem.role].push(stem);
     return acc;
   }, {} as Record<Stem['role'], Stem[]>);
-  if (loading) return <div className="p-6 text-neutral-500">Loading stems...</div>;
+  if (loading) return <div className="p-4 sm:p-6 text-neutral-500">Loading stems...</div>;
   return (
-    <div className="bg-surface rounded-lg border border-border shadow-md p-6">
-      <h2 className="text-2xl font-semibold text-neutral-900 mb-6">Stems</h2>
-      {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">{error}</div>}
+    <div className="bg-surface rounded-lg border border-border shadow-md p-4 sm:p-6">
+      <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900 mb-4 sm:mb-6">Stems</h2>
+      {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">{error}</div>}
       {stems.length === 0 ? (
-        <p className="text-neutral-500 mb-6">No stems available</p>
+        <p className="text-neutral-500 mb-4 sm:mb-6 text-sm sm:text-base">No stems available</p>
       ) : (
-        <div className="space-y-6 mb-8">
+        <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
           {STEM_ROLES.map(({ value, label }) => {
             const rolStems = stemsByRole[value];
             if (!rolStems || rolStems.length === 0) return null;
             return (
               <div key={value}>
-                <h3 className="text-sm font-medium text-neutral-700 uppercase mb-2">{label}</h3>
+                <h3 className="text-xs sm:text-sm font-medium text-neutral-700 uppercase mb-2">{label}</h3>
                 <div className="space-y-2">
                   {rolStems.map((stem) => (
-                    <div key={stem.id} className="flex items-center justify-between p-3 bg-surfaceAlt rounded border border-border">
-                      <span className="text-neutral-900">{stem.title}</span>
-                      <div className="flex gap-2">
-                        <button onClick={() => handleDownload(stem.id, stem.title)} className="px-3 py-1 bg-accent-500 text-white rounded hover:bg-accent-600 transition text-sm">
+                    <div key={stem.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-surfaceAlt rounded border border-border gap-3">
+                      <span className="text-neutral-900 text-sm sm:text-base truncate">{stem.title}</span>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button onClick={() => handleDownload(stem.id, stem.title)} className="flex-1 sm:flex-none px-3 py-1 bg-accent-500 text-white rounded hover:bg-accent-600 transition text-sm whitespace-nowrap">
                           Download
                         </button>
                         {isOwner && (
-                          <button onClick={() => handleDelete(stem.id)} className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm">
+                          <button onClick={() => handleDelete(stem.id)} className="flex-1 sm:flex-none px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm whitespace-nowrap">
                             Delete
                           </button>
                         )}
@@ -165,29 +165,37 @@ export function StemsPanel({ versionId, trackOwnerId }: StemsPanelProps) {
         </div>
       )}
       {isOwner && (
-        <form onSubmit={handleUpload} className="border-t border-border pt-6">
-          <h3 className="text-lg font-medium text-neutral-900 mb-4">Upload Stem</h3>
-          <div className="space-y-4">
+        <form onSubmit={handleUpload} className="border-t border-border pt-4 sm:pt-6">
+          <h3 className="text-base sm:text-lg font-medium text-neutral-900 mb-3 sm:mb-4">Upload Stem</h3>
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">File</label>
-              <input type="file" accept="audio/*" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} className="w-full px-3 py-2 border border-border rounded" disabled={uploading} />
+              <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">File</label>
+              <input type="file" accept="audio/*" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} className="w-full px-3 py-2 text-sm border border-border rounded file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100" disabled={uploading} />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Role</label>
-              <select value={uploadRole} onChange={(e) => setUploadRole(e.target.value as Stem['role'])} className="w-full px-3 py-2 border border-border rounded" disabled={uploading}>
-                {STEM_ROLES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Title</label>
-              <input type="text" value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="w-full px-3 py-2 border border-border rounded" placeholder="e.g., Lead Vocal Dry" disabled={uploading} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Role</label>
+                <select value={uploadRole} onChange={(e) => setUploadRole(e.target.value as Stem['role'])} className="w-full px-3 py-2 text-sm border border-border rounded" disabled={uploading}>
+                  {STEM_ROLES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Title</label>
+                <input type="text" value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="w-full px-3 py-2 text-sm border border-border rounded" placeholder="e.g., Lead Vocal Dry" disabled={uploading} />
+              </div>
             </div>
             {uploading && (
-              <div className="w-full bg-neutral-200 rounded h-2">
-                <div className="bg-accent-500 h-2 rounded transition-all" style={{ width: `${uploadProgress}%` }} />
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs text-neutral-600">
+                  <span>Uploading...</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
+                  <div className="bg-accent-500 h-2 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                </div>
               </div>
             )}
-            <button type="submit" disabled={!uploadFile || !uploadTitle || uploading} className="w-full px-4 py-2 bg-accent-500 text-white rounded hover:bg-accent-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="submit" disabled={!uploadFile || !uploadTitle || uploading} className="w-full px-4 py-2 sm:py-2.5 text-sm sm:text-base bg-accent-500 text-white rounded hover:bg-accent-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium">
               {uploading ? `Uploading... ${uploadProgress}%` : 'Upload Stem'}
             </button>
           </div>
