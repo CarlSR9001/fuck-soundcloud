@@ -65,9 +65,9 @@ export function DownloadButton({ trackId, policy, price }: DownloadButtonProps) 
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white rounded-md transition flex items-center gap-2"
+        className="px-3 sm:px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white rounded-md transition flex items-center justify-center gap-2 text-sm sm:text-base font-medium w-full sm:w-auto"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -75,28 +75,30 @@ export function DownloadButton({ trackId, policy, price }: DownloadButtonProps) 
             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
           />
         </svg>
-        Download ({formatText}) {priceText !== 'Free' && `- ${priceText}`}
+        <span className="truncate">
+          Download ({formatText}) {priceText !== 'Free' && `- ${priceText}`}
+        </span>
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-background-800 border border-accent-500/30 rounded-lg max-w-2xl w-full p-6 space-y-4">
-            <h2 className="text-2xl font-bold text-accent-400">Download Terms</h2>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-background-800 border border-accent-500/30 rounded-lg max-w-2xl w-full p-4 sm:p-6 space-y-3 sm:space-y-4 my-auto">
+            <h2 className="text-xl sm:text-2xl font-bold text-accent-400">Download Terms</h2>
 
-            <div className="space-y-3 text-sm text-gray-300 max-h-96 overflow-y-auto p-4 bg-background-900 rounded">
-              <h3 className="font-bold text-accent-300">Terms of Service</h3>
+            <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-300 max-h-60 sm:max-h-96 overflow-y-auto p-3 sm:p-4 bg-background-900 rounded">
+              <h3 className="font-bold text-accent-300 text-sm sm:text-base">Terms of Service</h3>
               <p>
                 By downloading this track, you agree to use it only for personal, non-commercial purposes
                 unless you have explicit permission from the rights holder.
               </p>
 
-              <h3 className="font-bold text-accent-300 mt-4">Copyright Statement</h3>
+              <h3 className="font-bold text-accent-300 mt-3 sm:mt-4 text-sm sm:text-base">Copyright Statement</h3>
               <p>
                 This track is protected by copyright law. The artist has attested that they own all rights
                 to this work. Unauthorized distribution, public performance, or commercial use is prohibited.
               </p>
 
-              <h3 className="font-bold text-accent-300 mt-4">Your Responsibilities</h3>
+              <h3 className="font-bold text-accent-300 mt-3 sm:mt-4 text-sm sm:text-base">Your Responsibilities</h3>
               <ul className="list-disc list-inside space-y-1">
                 <li>Do not redistribute this file without permission</li>
                 <li>Do not use in commercial projects without a license</li>
@@ -105,29 +107,29 @@ export function DownloadButton({ trackId, policy, price }: DownloadButtonProps) 
               </ul>
             </div>
 
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className="flex items-start sm:items-center gap-2 sm:gap-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={accepted}
                 onChange={(e) => setAccepted(e.target.checked)}
-                className="w-5 h-5"
+                className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 sm:mt-0 flex-shrink-0"
               />
-              <span className="text-sm text-gray-300">
+              <span className="text-xs sm:text-sm text-gray-300">
                 I have read and accept the terms. I will respect copyright law and the artist's rights.
               </span>
             </label>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <button
                 onClick={handleDownload}
                 disabled={!accepted || downloading}
-                className="flex-1 py-2 bg-accent-500 hover:bg-accent-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded transition"
+                className="flex-1 py-2 sm:py-2.5 bg-accent-500 hover:bg-accent-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded transition text-sm sm:text-base font-medium"
               >
                 {downloading ? 'Generating...' : `Download ${formatText}`}
               </button>
               <button
                 onClick={() => setShowModal(false)}
-                className="px-6 py-2 bg-background-700 hover:bg-background-600 text-white rounded transition"
+                className="px-4 sm:px-6 py-2 sm:py-2.5 bg-background-700 hover:bg-background-600 text-white rounded transition text-sm sm:text-base"
               >
                 Cancel
               </button>
