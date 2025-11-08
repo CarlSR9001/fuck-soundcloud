@@ -5,30 +5,30 @@ import {
   Delete,
   Body,
   Param,
-  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { CreditsService } from './credits.service';
 import { CreateCreditDto } from './dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { User } from '../../common/decorators';
 
 @Controller('api/v1')
 export class CreditsController {
   constructor(private readonly creditsService: CreditsService) {}
 
   @Post('tracks/:trackId/credits')
+  @UseGuards(JwtAuthGuard)
   async create(
     @Param('trackId') trackId: string,
     @Body() dto: CreateCreditDto,
-    @Request() req: any,
+    @User('userId') userId: string,
   ) {
-    // TODO: Get user ID from JWT token after auth is implemented
-    const userId = req.user?.id || 'temp-user-id';
     return await this.creditsService.create(trackId, userId, dto);
   }
 
   @Delete('credits/:id')
-  async remove(@Param('id') id: string, @Request() req: any) {
-    // TODO: Get user ID from JWT token after auth is implemented
-    const userId = req.user?.id || 'temp-user-id';
+  @UseGuards(JwtAuthGuard)
+  async remove(@Param('id') id: string, @User('userId') userId: string) {
     return await this.creditsService.remove(id, userId);
   }
 

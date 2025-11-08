@@ -5,20 +5,20 @@ import {
   Patch,
   Body,
   Param,
-  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { TracksService } from './tracks.service';
 import { CreateTrackDto, UpdateTrackDto, CreateVersionDto } from './dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { User } from '../../common/decorators';
 
 @Controller('api/v1/tracks')
 export class TracksController {
   constructor(private readonly tracksService: TracksService) {}
 
   @Post()
-  async create(@Body() dto: CreateTrackDto, @Request() req: any) {
-    // TODO: Get user ID from JWT token after auth is implemented
-    // For now, we'll use a placeholder
-    const ownerId = req.user?.id || 'temp-user-id';
+  @UseGuards(JwtAuthGuard)
+  async create(@Body() dto: CreateTrackDto, @User('userId') ownerId: string) {
     return await this.tracksService.create(ownerId, dto);
   }
 
@@ -28,14 +28,17 @@ export class TracksController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateTrackDto) {
+  @UseGuards(JwtAuthGuard)
+  async update(@Param('id') id: string, @Body() dto: UpdateTrackDto, @User('userId') userId: string) {
     return await this.tracksService.update(id, dto);
   }
 
   @Post(':id/versions')
+  @UseGuards(JwtAuthGuard)
   async createVersion(
     @Param('id') id: string,
     @Body() dto: CreateVersionDto,
+    @User('userId') userId: string,
   ) {
     return await this.tracksService.createVersion(id, dto);
   }

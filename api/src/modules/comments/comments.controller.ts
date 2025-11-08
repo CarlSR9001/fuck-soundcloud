@@ -6,22 +6,23 @@ import {
   Delete,
   Body,
   Param,
-  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto, UpdateCommentDto } from './dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { User } from '../../common/decorators';
 
 @Controller('api/v1')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @Post('comments')
+  @UseGuards(JwtAuthGuard)
   async create(
     @Body() dto: CreateCommentDto,
-    @Request() req: any,
+    @User('userId') userId: string,
   ) {
-    // TODO: Get user ID from JWT token after auth is implemented
-    const userId = req.user?.id || 'temp-user-id';
     return await this.commentsService.create(userId, dto);
   }
 
@@ -31,20 +32,18 @@ export class CommentsController {
   }
 
   @Patch('comments/:id')
+  @UseGuards(JwtAuthGuard)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateCommentDto,
-    @Request() req: any,
+    @User('userId') userId: string,
   ) {
-    // TODO: Get user ID from JWT token after auth is implemented
-    const userId = req.user?.id || 'temp-user-id';
     return await this.commentsService.update(id, userId, dto);
   }
 
   @Delete('comments/:id')
-  async remove(@Param('id') id: string, @Request() req: any) {
-    // TODO: Get user ID from JWT token after auth is implemented
-    const userId = req.user?.id || 'temp-user-id';
+  @UseGuards(JwtAuthGuard)
+  async remove(@Param('id') id: string, @User('userId') userId: string) {
     return await this.commentsService.remove(id, userId);
   }
 }

@@ -51,13 +51,45 @@ export class HealthCheckService {
    * Get current health status
    */
   private async getHealthStatus(): Promise<HealthStatus> {
-    // TODO: Implement actual queue health checks
-    // For now, return basic status
+    const queues: HealthStatus['queues'] = {};
+    let allHealthy = true;
+
+    try {
+      // Check all registered queues
+      const queueNames = [
+        'transcode',
+        'waveform',
+        'artwork-extract',
+        'loudness',
+        'analytics-rollup',
+      ];
+
+      for (const queueName of queueNames) {
+        const queue = this.queueManager.getQueue(queueName);
+
+        if (queue) {
+          try {
+            // Test Redis connection by trying to get queue stats
+            await queue.getJobCounts();
+            queues[queueName] = { connected: true };
+          } catch (error) {
+            queues[queueName] = { connected: false };
+            allHealthy = false;
+          }
+        } else {
+          queues[queueName] = { connected: false };
+          allHealthy = false;
+        }
+      }
+    } catch (error) {
+      allHealthy = false;
+    }
+
     return {
-      status: 'healthy',
+      status: allHealthy ? 'healthy' : 'unhealthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      queues: {},
+      queues,
     };
   }
 
