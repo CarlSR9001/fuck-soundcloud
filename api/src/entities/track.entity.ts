@@ -11,6 +11,8 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { TrackVersion } from './track-version.entity';
+import { TrackTag } from './track-tag.entity';
+import { Credit } from './credit.entity';
 
 export enum TrackVisibility {
   PUBLIC = 'public',
@@ -67,4 +69,10 @@ export class Track {
 
   @OneToMany(() => TrackVersion, (version) => version.track)
   versions: TrackVersion[];
+
+  @OneToMany(() => TrackTag, (trackTag) => trackTag.track)
+  track_tags: TrackTag[];
+
+  @OneToMany(() => Credit, (credit) => credit.track)
+  credits: Credit[];
 }

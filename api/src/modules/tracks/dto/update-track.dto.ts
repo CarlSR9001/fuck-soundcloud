@@ -5,6 +5,7 @@ import {
   IsDateString,
   IsUUID,
   MaxLength,
+  IsArray,
 } from 'class-validator';
 import { TrackVisibility } from '../../../entities';
 
@@ -29,4 +30,9 @@ export class UpdateTrackDto {
   @IsUUID()
   @IsOptional()
   artwork_asset_id?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags?: string[];
 }

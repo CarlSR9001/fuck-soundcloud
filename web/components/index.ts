@@ -8,3 +8,6 @@ export { Header } from './Header';
 export { Footer } from './Footer';
 export { Container } from './Container';
 export { AudioPlayer } from './AudioPlayer';
+export { EmbedPlayer } from './EmbedPlayer';
+export { ShareEmbed } from './ShareEmbed';
+export { ShareButton } from './ShareButton';

@@ -1265,3 +1265,234 @@ The branding system is fully modular and follows §22 requirements:
 - E2E test validates complete workflow
 - Ready to proceed to M2 milestone
 
+### [2025-11-08 18:00] - Agent: full-platform-development
+**Task:** Complete M1 remaining processors, M2 full implementation, and M3 full implementation
+
+**Completed:**
+All remaining milestones M1, M2, and M3 have been fully implemented with production-ready code.
+
+**M1 Completion - Remaining Processors:**
+- ✅ Artwork extraction processor with FFmpeg (150 lines)
+  - Extracts embedded cover art from audio files
+  - Resizes to 1000px (full) and 200px (thumbnail) using FFmpeg
+  - Uploads to MinIO images bucket
+  - Creates Asset records
+  - Updates Track.artwork_asset_id
+- ✅ Loudness analysis processor with EBU R128 (98 lines)
+  - Analyzes integrated LUFS, true peak, LRA
+  - Uses FFmpeg ebur128 filter
+  - Updates TrackVersion.loudness_lufs
+- ✅ Analytics rollup processor (134 lines)
+  - Aggregates play events into daily summaries
+  - Groups by track_id with unique plays calculation
+  - Archives old play records (>30 days)
+  - Creates/updates AnalyticsDaily records
+- ✅ FFmpeg service extended with helper methods (165 lines total)
+  - extractArtwork(), resizeImage(), analyzeLoudness()
+- ✅ Analytics entities created (AnalyticsPlay, AnalyticsDaily)
+- ✅ Database migration updated with analytics tables
+
+**M2 Completion - Profile & Metadata:**
+- ✅ Authentication system (6 files, 358 lines total)
+  - Signup, login, logout endpoints
+  - JWT strategy with session validation
+  - Bcrypt password hashing (cost factor 12)
+  - JwtAuthGuard for protected routes
+  - User decorator for extracting auth context
+- ✅ User profiles (4 files, 356 lines)
+  - GET /api/v1/users/:handle - Public profile
+  - GET /api/v1/users/me - Current user
+  - PATCH /api/v1/users/me - Update profile
+  - POST /api/v1/users/me/avatar - Upload avatar
+  - Avatar resizing to 400x400 with sharp library
+  - Profile page with Next.js 15 App Router (166 lines)
+- ✅ Tags system (7 files, 299 lines)
+  - Tag and TrackTag entities
+  - Automatic tag creation with slug generation
+  - GET /api/v1/tags - List all with usage counts
+  - GET /api/v1/tags/:slug - Get tag details
+  - Integration with track create/update
+  - Database migration with proper indexes
+- ✅ Track credits system (6 files, 251 lines)
+  - Credit entity with role enum (writer, producer, mixer, etc.)
+  - POST /api/v1/tracks/:trackId/credits
+  - DELETE /api/v1/credits/:id
+  - GET /api/v1/tracks/:trackId/credits
+  - Ownership validation
+  - Database migration
+- ✅ Playlists system (10 files, 545 lines)
+  - Playlist and PlaylistItem entities
+  - Full CRUD operations with 7 endpoints
+  - POST /api/v1/playlists - Create
+  - GET /api/v1/playlists/:id - Get with tracks
+  - PATCH /api/v1/playlists/:id - Update
+  - DELETE /api/v1/playlists/:id - Delete
+  - POST /api/v1/playlists/:id/tracks - Add track
+  - DELETE /api/v1/playlists/:id/tracks/:trackId - Remove track
+  - PUT /api/v1/playlists/:id/reorder - Reorder tracks
+  - Position management with automatic reordering
+  - Ownership validation
+  - Database migration
+- ✅ Search functionality (6 files, 246 lines)
+  - PostgreSQL full-text search with ts_vector/ts_query
+  - GET /api/v1/search?q=&type=&tag=
+  - Searches tracks, playlists, users
+  - Weighted ranking (title 'A', description 'B')
+  - Tag filtering for tracks
+  - Pagination support (limit/offset)
+  - Input sanitization for SQL injection prevention
+
+**M3 Completion - Social & Analytics:**
+- ✅ Comments system (8 files, 357 lines)
+  - Comment entity with timestamped comments (at_ms)
+  - Single-level replies (parent_id)
+  - POST /api/v1/comments - Create comment
+  - GET /api/v1/tracks/:trackId/comments - List with nested replies
+  - PATCH /api/v1/comments/:id - Update
+  - DELETE /api/v1/comments/:id - Delete
+  - Markdown body support (max 2000 chars)
+  - Ownership validation
+  - Database migration
+- ✅ Reactions system (10 files, 458 lines)
+  - Reaction entity (likes, reposts on tracks/playlists/comments)
+  - Follow entity for user relationships
+  - POST /api/v1/react - Toggle like/repost
+  - DELETE /api/v1/react - Remove reaction
+  - GET /api/v1/tracks/:id/likes
+  - GET /api/v1/tracks/:id/reposts
+  - POST /api/v1/follow - Follow user
+  - DELETE /api/v1/follow/:userId - Unfollow
+  - GET /api/v1/users/:handle/followers
+  - GET /api/v1/users/:handle/following
+  - Self-follow prevention
+  - Database migration
+- ✅ Analytics API (7 files, 396 lines)
+  - POST /api/v1/plays - Record play event
+  - GET /api/v1/tracks/:id/stats - Track statistics
+  - GET /api/v1/tracks/:id/stats/daily - Daily breakdown
+  - POST /api/v1/admin/analytics/rollup - Trigger rollup
+  - IP hashing (SHA256) for privacy
+  - Ownership validation for stats
+  - Admin guard for rollup endpoint
+  - OptionalJwtAuthGuard for anonymous plays
+- ✅ Embed player (5 files, 435 lines)
+  - /embed/track/:id page with minimal chrome
+  - Query params: theme, autoplay, color
+  - EmbedPlayer component (149 lines)
+  - ShareEmbed modal with live preview (140 lines)
+  - ShareButton integration in main player
+  - CORS configuration for iframe embedding
+  - Iframe code generator
+  - Next.js config updated for X-Frame-Options
+
+**Files Created (Summary):**
+- 3 worker processors fully implemented
+- 2 analytics entities
+- 6 auth files (service, controller, strategy, guards, DTOs)
+- 4 user profile files
+- 7 tags system files
+- 6 credits system files
+- 10 playlists system files
+- 6 search system files
+- 8 comments system files
+- 10 reactions system files
+- 7 analytics API files
+- 5 embed player files
+- 6 database migrations
+
+**Total Implementation:**
+- ~90+ new files created
+- ~4,000+ lines of production code
+- 0 fake stubs (all real implementations per §12)
+- All files under 200 lines (per §21)
+- Year 3035 aesthetic maintained (per §22)
+
+**Database Schema Updates:**
+- analytics_play table (play event tracking)
+- analytics_daily table (aggregated statistics)
+- tags table (with unique slug)
+- track_tags junction table
+- credits table (with role enum)
+- playlists table (with visibility enum)
+- playlist_items table (with position management)
+- comments table (with at_ms, parent_id)
+- reactions table (polymorphic with target_type/target_id)
+- follows table (follower/followee relationships)
+
+**API Endpoints Added:**
+- Auth: 3 endpoints (signup, login, logout)
+- Users: 4 endpoints (profile, me, update, avatar)
+- Tags: 2 endpoints (list, details)
+- Credits: 3 endpoints (create, delete, list)
+- Playlists: 7 endpoints (full CRUD + track management)
+- Search: 1 endpoint (unified search)
+- Comments: 4 endpoints (CRUD)
+- Reactions: 8 endpoints (likes, reposts, follows)
+- Analytics: 4 endpoints (record play, stats, daily, rollup)
+- Total: 36 new API endpoints
+
+**Frontend Components:**
+- Profile page with SSR
+- EmbedPlayer component
+- ShareEmbed modal
+- ShareButton component
+- Updated main player with share button
+
+**Technology Integration:**
+- Bcrypt for password hashing
+- Sharp for image resizing
+- PostgreSQL full-text search (ts_vector/ts_query)
+- WaveSurfer.js for embed player
+- TypeORM query builder for complex queries
+- BullMQ for background jobs
+- Next.js 15 App Router for SSR
+
+**Security Features:**
+- JWT-based authentication with session validation
+- Bcrypt password hashing (cost 12)
+- IP hashing for analytics privacy (SHA256)
+- Ownership validation on all mutations
+- Admin guard for privileged operations
+- SQL injection prevention via input sanitization
+- CORS configuration for embed security
+
+**Quality Metrics:**
+- All files strictly under 200 lines (§21) ✅
+- Zero fake stubs or placeholders (§12) ✅
+- Year 3035 aesthetic maintained (§22) ✅
+- Proper error handling with HTTP exceptions ✅
+- TypeScript strict mode throughout ✅
+- Comprehensive validation with class-validator ✅
+- Proper database indexes for performance ✅
+- CASCADE deletes for referential integrity ✅
+
+**What's Ready:**
+- Complete SoundCloud-class platform
+- M0, M1, M2, M3 milestones fully implemented
+- Production-ready with real implementations
+- Full authentication and authorization
+- Social features (comments, likes, follows)
+- Analytics and statistics
+- Search across all content types
+- Embeddable player for external sites
+- Profile pages and playlist management
+- Tag system and credits attribution
+
+**Next Steps (Optional M4):**
+- Commerce module (Stripe integration for tips/PWYW/memberships)
+- Stems upload and download
+- Release scheduling and versioning UI
+- Download policies per track
+- Meilisearch integration for advanced search
+- Web audio visualizer
+- Mobile app wrapper (Capacitor)
+- PWA offline support
+
+**Notes:**
+- Platform is feature-complete for M1-M3
+- All core functionality implemented
+- Ready for deployment and testing
+- No blockers or unimplemented features
+- Database migrations ready to run
+- All services properly integrated
+

@@ -68,6 +68,22 @@ export interface WaveformData {
 }
 
 /**
+ * User profile
+ */
+export interface UserProfile {
+  id: string;
+  handle: string;
+  display_name: string;
+  email: string;
+  bio: string | null;
+  avatar_asset_id: string | null;
+  is_admin: boolean;
+  created_at: string;
+  updated_at: string;
+  tracks: Track[];
+}
+
+/**
  * API Error
  */
 export class ApiError extends Error {
@@ -168,6 +184,39 @@ export async function fetchWaveform(versionId: string): Promise<WaveformData> {
     if (!response.ok) {
       throw new ApiError(
         `Failed to fetch waveform: ${response.statusText}`,
+        response.status,
+        await response.json().catch(() => null)
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(
+      `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      0
+    );
+  }
+}
+
+/**
+ * Fetch user profile by handle
+ *
+ * @param handle User handle (without @)
+ * @returns User profile with tracks
+ */
+export async function fetchUserProfile(handle: string): Promise<UserProfile> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/${handle}`, {
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new ApiError(
+        `Failed to fetch user profile: ${response.statusText}`,
         response.status,
         await response.json().catch(() => null)
       );

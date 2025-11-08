@@ -80,3 +80,86 @@ export async function transcodeToHLS(
     playlistPath,
   ]);
 }
+
+/**
+ * Extract embedded artwork from audio file
+ * Returns null if no artwork is found
+ */
+export async function extractArtwork(
+  inputPath: string,
+  outputPath: string
+): Promise<boolean> {
+  try {
+    await execFileAsync('ffmpeg', [
+      '-i',
+      inputPath,
+      '-an', // No audio
+      '-vcodec',
+      'copy',
+      '-y', // Overwrite output
+      outputPath,
+    ]);
+    return true;
+  } catch (error: any) {
+    // No artwork found is not an error - some files don't have embedded art
+    if (error.stderr && error.stderr.includes('Output file is empty')) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Resize image to specific dimensions
+ */
+export async function resizeImage(
+  inputPath: string,
+  outputPath: string,
+  width: number,
+  height: number
+): Promise<void> {
+  await execFileAsync('ffmpeg', [
+    '-i',
+    inputPath,
+    '-vf',
+    `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`,
+    '-q:v',
+    '2', // High quality JPEG
+    '-y',
+    outputPath,
+  ]);
+}
+
+/**
+ * Analyze loudness using EBU R128 standard
+ */
+export async function analyzeLoudness(inputPath: string): Promise<{
+  integrated_lufs: number;
+  true_peak_dbfs: number;
+  lra_lu: number;
+}> {
+  const { stderr } = await execFileAsync('ffmpeg', [
+    '-i',
+    inputPath,
+    '-af',
+    'ebur128=peak=true',
+    '-f',
+    'null',
+    '-',
+  ]);
+
+  // Parse FFmpeg stderr output for loudness values
+  const integratedMatch = stderr.match(/I:\s*(-?\d+\.?\d*)\s*LUFS/);
+  const truePeakMatch = stderr.match(/True Peak:\s*(-?\d+\.?\d*)\s*dBFS/);
+  const lraMatch = stderr.match(/LRA:\s*(-?\d+\.?\d*)\s*LU/);
+
+  if (!integratedMatch) {
+    throw new Error('Failed to extract integrated loudness from FFmpeg output');
+  }
+
+  return {
+    integrated_lufs: parseFloat(integratedMatch[1]),
+    true_peak_dbfs: truePeakMatch ? parseFloat(truePeakMatch[1]) : 0,
+    lra_lu: lraMatch ? parseFloat(lraMatch[1]) : 0,
+  };
+}
