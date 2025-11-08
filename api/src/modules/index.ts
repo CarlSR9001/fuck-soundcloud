@@ -3,3 +3,8 @@ export * from './auth';
 export * from './upload';
 export * from './tracks';
 export * from './users';
+export * from './credits';
+export * from './search';
+export * from './analytics';
+export * from './reactions';
+export * from './comments';

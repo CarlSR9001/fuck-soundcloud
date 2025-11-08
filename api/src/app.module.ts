@@ -17,9 +17,15 @@ import {
   UploadModule,
   TracksModule,
   UsersModule,
+  CreditsModule,
+  SearchModule,
+  AnalyticsModule,
+  ReactionsModule,
+  CommentsModule,
 } from './modules';
 import { StorageModule } from './modules/storage';
 import { StreamModule } from './modules/stream';
+import { TagsModule } from './modules/tags/tags.module';
 
 @Module({
   imports: [
@@ -51,6 +57,12 @@ import { StreamModule } from './modules/stream';
     TracksModule,
     UsersModule,
     StreamModule,
+    CreditsModule,
+    TagsModule,
+    SearchModule,
+    AnalyticsModule,
+    ReactionsModule,
+    CommentsModule,
   ],
 })
 export class AppModule implements NestModule {

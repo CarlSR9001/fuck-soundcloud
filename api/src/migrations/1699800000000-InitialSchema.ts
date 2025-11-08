@@ -177,11 +177,68 @@ export class InitialSchema1699800000000 implements MigrationInterface {
       )
     `);
 
+    // Create analytics_play table
+    await queryRunner.query(`
+      CREATE TABLE "analytics_play" (
+        "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+        "track_id" uuid NOT NULL,
+        "user_id" uuid,
+        "ip_hash" varchar(64) NOT NULL,
+        "user_agent" text,
+        "started_at" timestamptz NOT NULL DEFAULT now(),
+        "completed" boolean NOT NULL DEFAULT false,
+        "watch_ms" int NOT NULL DEFAULT 0,
+        "referrer" text,
+        "country" varchar(2),
+        CONSTRAINT "FK_analytics_play_track" FOREIGN KEY ("track_id")
+          REFERENCES "tracks"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_analytics_play_user" FOREIGN KEY ("user_id")
+          REFERENCES "users"("id") ON DELETE SET NULL
+      )
+    `);
+
+    await queryRunner.query(
+      `CREATE INDEX "IDX_analytics_play_track_started" ON "analytics_play" ("track_id", "started_at")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_analytics_play_user_id" ON "analytics_play" ("user_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_analytics_play_started_at" ON "analytics_play" ("started_at")`,
+    );
+
+    // Create analytics_daily table
+    await queryRunner.query(`
+      CREATE TABLE "analytics_daily" (
+        "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+        "track_id" uuid NOT NULL,
+        "day" date NOT NULL,
+        "plays" int NOT NULL DEFAULT 0,
+        "uniques" int NOT NULL DEFAULT 0,
+        "likes" int NOT NULL DEFAULT 0,
+        "reposts" int NOT NULL DEFAULT 0,
+        "downloads" int NOT NULL DEFAULT 0,
+        "completions" int NOT NULL DEFAULT 0,
+        CONSTRAINT "FK_analytics_daily_track" FOREIGN KEY ("track_id")
+          REFERENCES "tracks"("id") ON DELETE CASCADE,
+        CONSTRAINT "UQ_analytics_daily_track_day" UNIQUE ("track_id", "day")
+      )
+    `);
+
+    await queryRunner.query(
+      `CREATE INDEX "IDX_analytics_daily_track_day" ON "analytics_daily" ("track_id", "day")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_analytics_daily_day" ON "analytics_daily" ("day")`,
+    );
+
     // Enable uuid-ossp extension for uuid_generate_v4()
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TABLE "analytics_daily"`);
+    await queryRunner.query(`DROP TABLE "analytics_play"`);
     await queryRunner.query(`DROP TABLE "waveforms"`);
     await queryRunner.query(`DROP TABLE "transcodes"`);
     await queryRunner.query(`DROP TYPE "transcode_status_enum"`);

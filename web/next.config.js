@@ -8,6 +8,24 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@/components', '@/lib'],
   },
+  async headers() {
+    return [
+      {
+        // Allow embed pages to be loaded in iframes from any origin
+        source: '/embed/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors *",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

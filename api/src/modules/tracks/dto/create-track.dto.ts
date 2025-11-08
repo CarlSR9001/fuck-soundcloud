@@ -5,6 +5,7 @@ import {
   IsDateString,
   IsUUID,
   MaxLength,
+  IsArray,
 } from 'class-validator';
 import { TrackVisibility } from '../../../entities';
 
@@ -36,4 +37,9 @@ export class CreateTrackDto {
   @IsOptional()
   @MaxLength(100)
   version_label?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags?: string[];
 }

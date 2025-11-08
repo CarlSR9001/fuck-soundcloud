@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bull';
 import { TracksController } from './tracks.controller';
 import { TracksService } from './tracks.service';
 import { Track, TrackVersion, Transcode } from '../../entities';
+import { TagsModule } from '../tags/tags.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { Track, TrackVersion, Transcode } from '../../entities';
       { name: 'transcode' },
       { name: 'waveform' },
     ),
+    TagsModule,
   ],
   controllers: [TracksController],
   providers: [TracksService],

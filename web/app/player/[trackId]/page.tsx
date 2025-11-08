@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchTrack, ApiError } from '@/lib/api';
-import { AudioPlayer } from '@/components';
+import { AudioPlayer, ShareButton } from '@/components';
 import { Container } from '@/components';
 import { branding } from '@/config';
 
@@ -137,6 +137,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                     {primaryVersion.channels === 1 ? 'Mono' : primaryVersion.channels === 2 ? 'Stereo' : `${primaryVersion.channels} channels`}
                   </span>
                 )}
+              </div>
+              <div className="mt-6">
+                <ShareButton trackId={track.id} />
               </div>
             </div>
           </div>

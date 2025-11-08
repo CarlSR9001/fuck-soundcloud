@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InjectQueue } from '@nestjs/bull';
 import { Repository } from 'typeorm';
@@ -11,6 +11,7 @@ import {
   TranscodeFormat,
 } from '../../entities';
 import { CreateTrackDto, UpdateTrackDto, CreateVersionDto } from './dto';
+import { TagsService } from '../tags/tags.service';
 
 @Injectable()
 export class TracksService {
@@ -23,10 +24,11 @@ export class TracksService {
     private transcodeRepository: Repository<Transcode>,
     @InjectQueue('transcode') private transcodeQueue: Queue,
     @InjectQueue('waveform') private waveformQueue: Queue,
+    private tagsService: TagsService,
   ) {}
 
   async create(ownerId: string, dto: CreateTrackDto) {
-    const { title, original_asset_id, version_label, ...rest } = dto;
+    const { title, original_asset_id, version_label, tags, ...rest } = dto;
 
     // Generate slug from title
     const slug = this.generateSlug(title);
@@ -40,6 +42,11 @@ export class TracksService {
     });
 
     await this.trackRepository.save(track);
+
+    // Set tags if provided
+    if (tags && tags.length > 0) {
+      await this.tagsService.setTrackTags(track.id, tags);
+    }
 
     // Create initial version
     const version = await this.createVersionForTrack(
@@ -58,7 +65,14 @@ export class TracksService {
   async findOne(id: string) {
     const track = await this.trackRepository.findOne({
       where: { id },
-      relations: ['versions', 'versions.transcodes', 'versions.waveform'],
+      relations: [
+        'versions',
+        'versions.transcodes',
+        'versions.waveform',
+        'track_tags',
+        'track_tags.tag',
+        'credits',
+      ],
     });
 
     if (!track) {
@@ -71,7 +85,14 @@ export class TracksService {
   async findBySlug(slug: string) {
     const track = await this.trackRepository.findOne({
       where: { slug },
-      relations: ['versions', 'versions.transcodes', 'versions.waveform'],
+      relations: [
+        'versions',
+        'versions.transcodes',
+        'versions.waveform',
+        'track_tags',
+        'track_tags.tag',
+        'credits',
+      ],
     });
 
     if (!track) {
@@ -83,8 +104,19 @@ export class TracksService {
 
   async update(id: string, dto: UpdateTrackDto) {
     const track = await this.findOne(id);
-    Object.assign(track, dto);
-    return await this.trackRepository.save(track);
+    const { tags, ...updateData } = dto;
+
+    // Update track fields
+    Object.assign(track, updateData);
+    await this.trackRepository.save(track);
+
+    // Update tags if provided
+    if (tags !== undefined) {
+      await this.tagsService.setTrackTags(track.id, tags);
+    }
+
+    // Reload track with updated tags
+    return await this.findOne(id);
   }
 
   async createVersion(trackId: string, dto: CreateVersionDto) {
