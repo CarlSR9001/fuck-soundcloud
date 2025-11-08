@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createHash } from 'crypto';
-import { TrackVersion, Transcode, TranscodeFormat } from '../../entities';
+import { TrackVersion, Transcode, TranscodeFormat, User } from '../../entities';
 import { StorageService } from '../storage';
 
 @Injectable()
@@ -16,6 +16,8 @@ export class StreamService {
     private versionRepository: Repository<TrackVersion>,
     @InjectRepository(Transcode)
     private transcodeRepository: Repository<Transcode>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private configService: ConfigService,
     private storageService: StorageService,
   ) {
@@ -25,7 +27,11 @@ export class StreamService {
       parseInt(this.configService.get<string>('HLS_TOKEN_TTL_SECONDS') || '3600', 10);
   }
 
-  async getStreamUrl(versionId: string, format: TranscodeFormat = TranscodeFormat.HLS_OPUS) {
+  async getStreamUrl(
+    versionId: string,
+    format?: TranscodeFormat,
+    userId?: string
+  ) {
     // Find version with transcodes
     const version = await this.versionRepository.findOne({
       where: { id: versionId },
@@ -36,13 +42,40 @@ export class StreamService {
       throw new Error(`Version ${versionId} not found`);
     }
 
-    // Find the requested transcode
-    const transcode = version.transcodes.find((t) => t.format === format);
+    // Determine format: check user preference if authenticated
+    let selectedFormat = format || TranscodeFormat.HLS_OPUS;
 
-    if (!transcode || transcode.status !== 'ready') {
-      throw new Error(`Transcode ${format} not ready for version ${versionId}`);
+    if (userId && !format) {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (user?.prefer_lossless) {
+        // Check if lossless is available
+        const losslessAvailable = version.transcodes.some(
+          (t) => t.format === TranscodeFormat.HLS_ALAC && t.status === 'ready'
+        );
+        if (losslessAvailable) {
+          selectedFormat = TranscodeFormat.HLS_ALAC;
+        }
+      }
     }
 
+    // Find the requested transcode
+    const transcode = version.transcodes.find((t) => t.format === selectedFormat);
+
+    if (!transcode || transcode.status !== 'ready') {
+      // Fallback to standard Opus if preferred format not available
+      const fallbackTranscode = version.transcodes.find(
+        (t) => t.format === TranscodeFormat.HLS_OPUS && t.status === 'ready'
+      );
+      if (fallbackTranscode) {
+        return await this.buildStreamResponse(fallbackTranscode);
+      }
+      throw new Error(`No ready transcode found for version ${versionId}`);
+    }
+
+    return await this.buildStreamResponse(transcode);
+  }
+
+  private async buildStreamResponse(transcode: Transcode) {
     // Get the playlist asset ID and construct the path
     const playlistKey = await this.getPlaylistKey(transcode.id);
 

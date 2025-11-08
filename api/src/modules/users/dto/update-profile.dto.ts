@@ -1,4 +1,4 @@
-import { IsString, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsOptional, MaxLength, IsBoolean } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -10,4 +10,8 @@ export class UpdateProfileDto {
   @IsString()
   @MaxLength(1000)
   bio?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  prefer_lossless?: boolean;
 }

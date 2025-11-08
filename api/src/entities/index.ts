@@ -24,3 +24,6 @@ export * from './copyright-attestation.entity';
 export * from './audio-fingerprint.entity';
 export * from './artist-verification.entity';
 export * from './dmca-request.entity';
+export * from './preview-link.entity';
+export * from './download.entity';
+export * from './stem.entity';

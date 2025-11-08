@@ -10,7 +10,13 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { TracksService } from './tracks.service';
-import { CreateTrackDto, UpdateTrackDto, CreateVersionDto } from './dto';
+import {
+  CreateTrackDto,
+  UpdateTrackDto,
+  CreateVersionDto,
+  UpdateLinerNotesDto,
+  ScheduleTrackDto,
+} from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../../common/decorators';
 
@@ -49,5 +55,32 @@ export class TracksController {
     @User('userId') userId: string,
   ) {
     return await this.tracksService.createVersion(id, dto);
+  }
+
+  @Patch(':id/schedule')
+  @UseGuards(JwtAuthGuard)
+  async schedule(
+    @Param('id') id: string,
+    @Body() dto: ScheduleTrackDto,
+    @User('userId') userId: string,
+  ) {
+    const publishedAt = dto.published_at ? new Date(dto.published_at) : null;
+    const embargoUntil = dto.embargo_until ? new Date(dto.embargo_until) : null;
+    return await this.tracksService.schedule(id, publishedAt, embargoUntil, userId);
+  }
+}
+
+@Controller('api/v1/versions')
+export class VersionsController {
+  constructor(private readonly tracksService: TracksService) {}
+
+  @Patch(':id/liner-notes')
+  @UseGuards(JwtAuthGuard)
+  async updateLinerNotes(
+    @Param('id') id: string,
+    @Body() dto: UpdateLinerNotesDto,
+    @User('userId') userId: string,
+  ) {
+    return await this.tracksService.updateLinerNotes(id, userId, dto);
   }
 }

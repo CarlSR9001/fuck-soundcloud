@@ -10,6 +10,38 @@ import * as path from 'path';
 const execFileAsync = promisify(execFile);
 
 /**
+ * Check if audio file is lossless format
+ * Returns true for WAV, FLAC, ALAC codecs
+ */
+export async function isLosslessFormat(inputPath: string): Promise<boolean> {
+  try {
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v',
+      'quiet',
+      '-print_format',
+      'json',
+      '-show_streams',
+      '-select_streams',
+      'a:0',
+      inputPath,
+    ]);
+
+    const probe = JSON.parse(stdout);
+    const audioStream = probe.streams?.[0];
+
+    if (!audioStream) {
+      return false;
+    }
+
+    const losslessCodecs = ['pcm_s16le', 'pcm_s24le', 'pcm_s32le', 'flac', 'alac', 'wav'];
+    return losslessCodecs.includes(audioStream.codec_name?.toLowerCase() || '');
+  } catch (error) {
+    console.error('Failed to detect lossless format:', error);
+    return false;
+  }
+}
+
+/**
  * Extract metadata using ffprobe
  */
 export async function extractMetadata(inputPath: string): Promise<{
@@ -77,6 +109,40 @@ export async function transcodeToHLS(
     '+faststart+frag_keyframe',
     '-frag_duration',
     '2000000', // 2-second parts (in microseconds)
+    playlistPath,
+  ]);
+}
+
+/**
+ * Transcode audio to HLS fMP4/CMAF with ALAC codec (lossless)
+ * Creates 10-second segments for lossless quality
+ * Only use with lossless source files (WAV, FLAC, ALAC)
+ */
+export async function transcodeToHLSLossless(
+  inputPath: string,
+  outputDir: string,
+  playlistPath: string
+): Promise<void> {
+  await execFileAsync('ffmpeg', [
+    '-i',
+    inputPath,
+    '-c:a',
+    'alac',
+    '-vn', // No video
+    '-f',
+    'hls',
+    '-hls_time',
+    '10', // 10-second segments for lossless
+    '-hls_list_size',
+    '0',
+    '-hls_playlist_type',
+    'vod',
+    '-hls_segment_type',
+    'fmp4',
+    '-hls_fmp4_init_filename',
+    'init.mp4',
+    '-hls_segment_filename',
+    path.join(outputDir, 'segment_%03d.m4s'),
     playlistPath,
   ]);
 }
@@ -162,4 +228,25 @@ export async function analyzeLoudness(inputPath: string): Promise<{
     true_peak_dbfs: truePeakMatch ? parseFloat(truePeakMatch[1]) : 0,
     lra_lu: lraMatch ? parseFloat(lraMatch[1]) : 0,
   };
+}
+
+/**
+ * Transcode audio to 320kbps MP3 for lossy downloads
+ */
+export async function transcodeToMp3(
+  inputPath: string,
+  outputPath: string
+): Promise<void> {
+  await execFileAsync('ffmpeg', [
+    '-i',
+    inputPath,
+    '-c:a',
+    'libmp3lame',
+    '-b:a',
+    '320k',
+    '-q:a',
+    '0',
+    '-y',
+    outputPath,
+  ]);
 }

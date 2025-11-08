@@ -61,6 +61,21 @@ export class TrackVersion {
   @Column({ type: 'text', nullable: true })
   error_message: string | null;
 
+  @Column({ type: 'text', nullable: true })
+  liner_notes: string | null;
+
+  @Column({ type: 'date', nullable: true })
+  session_date: Date | null;
+
+  @Column({ type: 'varchar', length: 300, nullable: true })
+  session_location: string | null;
+
+  @Column({ type: 'jsonb', nullable: true })
+  instruments_json: string[] | null;
+
+  @Column({ type: 'jsonb', nullable: true })
+  gear_json: string[] | null;
+
   @CreateDateColumn()
   created_at: Date;
 

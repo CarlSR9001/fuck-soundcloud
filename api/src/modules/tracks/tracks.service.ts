@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InjectQueue } from '@nestjs/bull';
-import { Repository } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { Queue } from 'bull';
 import {
   Track,
@@ -11,7 +11,7 @@ import {
   TranscodeFormat,
   CopyrightAttestation,
 } from '../../entities';
-import { CreateTrackDto, UpdateTrackDto, CreateVersionDto } from './dto';
+import { CreateTrackDto, UpdateTrackDto, CreateVersionDto, UpdateLinerNotesDto } from './dto';
 import { TagsService } from '../tags/tags.service';
 
 @Injectable()
@@ -82,7 +82,7 @@ export class TracksService {
     return { track, version };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId?: string) {
     const track = await this.trackRepository.findOne({
       where: { id },
       relations: [
@@ -99,7 +99,23 @@ export class TracksService {
       throw new NotFoundException(`Track with ID ${id} not found`);
     }
 
+    if (!this.canAccessTrack(track, userId)) {
+      throw new NotFoundException(`Track with ID ${id} not found`);
+    }
+
     return track;
+  }
+
+  private canAccessTrack(track: Track, userId?: string): boolean {
+    if (track.owner_user_id === userId) {
+      return true;
+    }
+
+    if (track.published_at && new Date() < track.published_at) {
+      return false;
+    }
+
+    return track.visibility === 'public' || track.visibility === 'unlisted';
   }
 
   async findBySlug(slug: string) {
@@ -187,13 +203,81 @@ export class TracksService {
     return version;
   }
 
+  async updateLinerNotes(versionId: string, userId: string, dto: UpdateLinerNotesDto) {
+    const version = await this.versionRepository.findOne({
+      where: { id: versionId },
+      relations: ['track'],
+    });
+
+    if (!version) {
+      throw new NotFoundException(`Version with ID ${versionId} not found`);
+    }
+
+    if (version.track.owner_user_id !== userId) {
+      throw new ForbiddenException('Only the track owner can edit liner notes');
+    }
+
+    if (dto.liner_notes !== undefined) {
+      version.liner_notes = dto.liner_notes;
+    }
+    if (dto.session_date !== undefined) {
+      version.session_date = dto.session_date ? new Date(dto.session_date) : null;
+    }
+    if (dto.session_location !== undefined) {
+      version.session_location = dto.session_location;
+    }
+    if (dto.instruments !== undefined) {
+      version.instruments_json = dto.instruments;
+    }
+    if (dto.gear !== undefined) {
+      version.gear_json = dto.gear;
+    }
+
+    await this.versionRepository.save(version);
+    return version;
+  }
+
+  async schedule(id: string, publishedAt: Date | null, embargoUntil: Date | null, userId: string) {
+    const track = await this.findOne(id, userId);
+
+    if (track.owner_user_id !== userId) {
+      throw new ForbiddenException('Only track owner can schedule releases');
+    }
+
+    if (publishedAt && publishedAt < new Date()) {
+      throw new Error('published_at must be in the future');
+    }
+
+    track.published_at = publishedAt;
+    track.embargo_until = embargoUntil;
+    track.is_scheduled = publishedAt !== null;
+
+    return await this.trackRepository.save(track);
+  }
+
+  async publishScheduledTracks(): Promise<number> {
+    const now = new Date();
+    const tracksToPublish = await this.trackRepository.find({
+      where: {
+        is_scheduled: true,
+        published_at: LessThan(now),
+      },
+    });
+
+    for (const track of tracksToPublish) {
+      track.is_scheduled = false;
+      await this.trackRepository.save(track);
+    }
+
+    return tracksToPublish.length;
+  }
+
   private generateSlug(title: string): string {
     const baseSlug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    // Add timestamp to ensure uniqueness
     return `${baseSlug}-${Date.now()}`;
   }
 }

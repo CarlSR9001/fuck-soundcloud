@@ -9,6 +9,7 @@ export * from './loudness.job';
 export * from './analytics-rollup.job';
 export * from './fingerprint.job';
 export * from './distribution.job';
+export * from './mp3-transcode.job';
 
 /**
  * Union type of all job names
