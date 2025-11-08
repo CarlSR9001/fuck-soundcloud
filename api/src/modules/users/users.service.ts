@@ -58,6 +58,10 @@ export class UsersService {
       user.bio = data.bio;
     }
 
+    if (data.prefer_lossless !== undefined) {
+      user.prefer_lossless = data.prefer_lossless;
+    }
+
     await this.userRepository.save(user);
 
     return this.sanitizeUser(user);

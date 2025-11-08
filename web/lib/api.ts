@@ -78,6 +78,7 @@ export interface UserProfile {
   bio: string | null;
   avatar_asset_id: string | null;
   is_admin: boolean;
+  prefer_lossless: boolean;
   created_at: string;
   updated_at: string;
   tracks: Track[];
@@ -134,16 +135,22 @@ export async function fetchTrack(id: string): Promise<Track> {
  * Get signed HLS playlist URL for a track version
  *
  * @param versionId Track version ID
+ * @param format Optional transcode format (hls_opus, hls_alac, etc)
  * @returns Signed HLS playlist URL
  */
-export async function fetchStreamUrl(versionId: string): Promise<string> {
+export async function fetchStreamUrl(
+  versionId: string,
+  format?: 'hls_opus' | 'hls_alac' | 'hls_aac'
+): Promise<string> {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/v1/stream/${versionId}.m3u8`,
-      {
-        cache: 'no-store',
-      }
-    );
+    const url = new URL(`${API_BASE_URL}/api/v1/stream/${versionId}.m3u8`);
+    if (format) {
+      url.searchParams.append('format', format);
+    }
+
+    const response = await fetch(url.toString(), {
+      cache: 'no-store',
+    });
 
     if (!response.ok) {
       throw new ApiError(
@@ -233,6 +240,37 @@ export async function fetchUserProfile(handle: string): Promise<UserProfile> {
       0
     );
   }
+}
+
+/**
+ * Update user preferences (including prefer_lossless)
+ *
+ * @param data Profile update data
+ * @param token JWT auth token
+ * @returns Updated user profile
+ */
+export async function updateUserPreferences(
+  data: {
+    display_name?: string;
+    bio?: string;
+    prefer_lossless?: boolean;
+  },
+  token: string
+): Promise<UserProfile> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new ApiError('Failed to update preferences', response.status);
+  }
+
+  return response.json();
 }
 
 // ==================== CONTRIBUTION METHODS ====================
@@ -493,4 +531,148 @@ export async function verifyUpload(data: {
   if (!response.ok) {
     throw new ApiError('Failed to verify upload', response.status);
   }
+}
+
+// ==================== STEMS METHODS ====================
+
+export interface Stem {
+  id: string;
+  track_version_id: string;
+  role: 'vocal' | 'drum' | 'bass' | 'guitar' | 'synth' | 'fx' | 'other';
+  title: string;
+  asset_id: string;
+  created_at: string;
+  asset?: {
+    id: string;
+    bucket: string;
+    key: string;
+    size_bytes: number;
+  };
+}
+
+/**
+ * Fetch stems for a track version
+ */
+export async function fetchStems(versionId: string): Promise<Stem[]> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/versions/${versionId}/stems`, {
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new ApiError('Failed to fetch stems', response.status);
+  }
+
+  return response.json();
+}
+
+/**
+ * Create a stem for a track version
+ */
+export async function createStem(versionId: string, data: {
+  role: Stem['role'];
+  title: string;
+  asset_id: string;
+}, token: string): Promise<Stem> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/versions/${versionId}/stems`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new ApiError('Failed to create stem', response.status);
+  }
+
+  return response.json();
+}
+
+/**
+ * Get download URL for a stem
+ */
+export async function getStemDownloadUrl(stemId: string): Promise<{ url: string }> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/stems/${stemId}/download`, {
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new ApiError('Failed to get stem download URL', response.status);
+  }
+
+  return response.json();
+}
+
+/**
+ * Delete a stem
+ */
+export async function deleteStem(stemId: string, token: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/stems/${stemId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new ApiError('Failed to delete stem', response.status);
+  }
+}
+
+// ==================== TRACK VERSION METHODS ====================
+
+/**
+ * Create a new version of a track
+ *
+ * @param trackId Track ID
+ * @param file Audio file to upload
+ * @param versionLabel Version label (e.g., "v2", "Radio Edit")
+ * @param onProgress Optional progress callback
+ * @returns Created track version
+ */
+export async function createTrackVersion(
+  trackId: string,
+  file: File,
+  versionLabel: string,
+  onProgress?: (progress: number) => void,
+): Promise<TrackVersion> {
+  // TODO: Implement actual file upload to asset storage
+  // For now, this is a placeholder that simulates upload
+  // In production, this would upload to S3/R2 and get an asset ID
+
+  // Simulate upload progress
+  if (onProgress) {
+    for (let i = 0; i <= 100; i += 10) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      onProgress(i);
+    }
+  }
+
+  // Placeholder asset ID (in production, this comes from S3/R2)
+  const assetId = crypto.randomUUID();
+
+  // Create version via API
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    throw new ApiError('Not authenticated', 401);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/tracks/${trackId}/versions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      original_asset_id: assetId,
+      version_label: versionLabel,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new ApiError('Failed to create version', response.status);
+  }
+
+  return response.json();
 }

@@ -8,7 +8,7 @@ A SoundCloud-class platform you fully control with better creative features and 
 - **Own your media**: Files live on your VPS (MinIO object storage), proxied by Nginx
 - **No pretend dev**: Every endpoint lands real effects
 - **Performance over polish**: HLS/Opus streaming, fast search, good caching
-- **Composable money**: Tips, pay-what-you-want, memberships (Stripe adapter)
+- **Ethical economics**: Voluntary contributions with transparent artist payouts and charity integration
 - **Single-tenant ready**: Run it for yourself, schema supports multi-user later
 
 ## Tech Stack
@@ -167,27 +167,30 @@ To rebrand: Edit these config files. Zero hardcoded values in components.
 - **Multi-stage Docker builds**: Optimized production images, dev hot-reload
 - **Health checks**: All services include proper health endpoints
 
-## Current Status (M0 Bootstrap)
+## Current Status
 
-✅ **Completed:**
-- Docker infrastructure with 8 services
-- NestJS API skeleton with health endpoints
-- Next.js web skeleton with modular branding
-- Worker service with job processor skeletons
-- Shared TypeScript types package
-- Development scripts
-- Nginx reverse proxy configuration
+✅ **Completed Milestones:**
+- **M0 - Bootstrap**: Full Docker infrastructure with 8 services
+- **M1 - Upload → Stream**: Multipart upload, HLS transcoding (Opus), waveform generation, signed URLs, working player
+- **M2 - Profile & Metadata**: Auth (JWT), profiles, tags, credits, playlists, search (PostgreSQL FTS)
+- **M3 - Social & Analytics**: Comments with timestamps, likes/reposts/follows, analytics, embed player
+- **M5 - Economics & Moderation**: Voluntary contributions (Humble Bundle model), DMCA compliance, content moderation, audio fingerprinting, artist verification
 
-⏳ **In Progress:**
-- Database migrations
-- E2E test scripts
+✅ **Production Ready For:**
+- Uploading and streaming music (HLS/Opus)
+- User authentication and profiles
+- Social features (comments, likes, follows)
+- Search and discovery
+- Content moderation and legal compliance
+- Ethical contribution-based economics with transparent artist payouts
 
-🔜 **Next (M1 - Upload → Stream):**
-- Multipart upload to MinIO
-- FFmpeg HLS transcoding (Opus)
-- Waveform generation
-- Signed HLS playlists
-- Working web player
+🔜 **Next (M4 - Creative Tools):**
+- Stems upload and download system
+- Track versioning UI with A/B toggle
+- Release scheduling and embargos
+- Liner notes with markdown support
+- Lossless streaming option (HLS + ALAC)
+- Per-track download policies
 
 ## Documentation
 

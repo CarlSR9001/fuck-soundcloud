@@ -1,6 +1,8 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards, Req } from '@nestjs/common';
 import { StreamService } from './stream.service';
 import { TranscodeFormat } from '../../entities';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
 
 @Controller('api/v1/stream')
 export class StreamController {
@@ -10,10 +12,15 @@ export class StreamController {
   async getStreamUrl(
     @Param('versionId') versionId: string,
     @Query('format') format?: TranscodeFormat,
+    @Req() request?: Request,
   ) {
+    // Extract userId from JWT if present (optional auth)
+    const userId = (request as any)?.user?.userId;
+
     return await this.streamService.getStreamUrl(
       versionId,
-      format || TranscodeFormat.HLS_OPUS,
+      format,
+      userId,
     );
   }
 }

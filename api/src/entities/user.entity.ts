@@ -47,6 +47,9 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   banned_at: Date | null;
 
+  @Column({ default: false })
+  prefer_lossless: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
-import { TracksController } from './tracks.controller';
+import { TracksController, VersionsController } from './tracks.controller';
 import { TracksService } from './tracks.service';
 import { Track, TrackVersion, Transcode, CopyrightAttestation } from '../../entities';
 import { TagsModule } from '../tags/tags.module';
@@ -15,7 +15,7 @@ import { TagsModule } from '../tags/tags.module';
     ),
     TagsModule,
   ],
-  controllers: [TracksController],
+  controllers: [TracksController, VersionsController],
   providers: [TracksService],
   exports: [TracksService],
 })

@@ -20,6 +20,13 @@ export enum TrackVisibility {
   PRIVATE = 'private',
 }
 
+export enum DownloadPolicy {
+  DISABLED = 'disabled',
+  LOSSY = 'lossy',
+  ORIGINAL = 'original',
+  STEMS_INCLUDED = 'stems_included',
+}
+
 @Entity('tracks')
 export class Track {
   @PrimaryGeneratedColumn('uuid')
@@ -55,11 +62,31 @@ export class Track {
   @Index()
   release_at: Date | null;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  @Index()
+  published_at: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  embargo_until: Date | null;
+
+  @Column({ type: 'boolean', default: false })
+  is_scheduled: boolean;
+
   @Column({ type: 'uuid', nullable: true })
   artwork_asset_id: string | null;
 
   @Column({ type: 'uuid', nullable: true })
   primary_version_id: string | null;
+
+  @Column({
+    type: 'enum',
+    enum: DownloadPolicy,
+    default: DownloadPolicy.DISABLED,
+  })
+  download_policy: DownloadPolicy;
+
+  @Column({ type: 'integer', nullable: true })
+  download_price_cents: number | null;
 
   @CreateDateColumn()
   created_at: Date;

@@ -26,6 +26,8 @@ import {
   CharitiesModule,
   PaymentsModule,
   VerificationModule,
+  StemsModule,
+  DownloadsModule,
 } from './modules';
 import { StorageModule } from './modules/storage';
 import { StreamModule } from './modules/stream';
@@ -34,6 +36,7 @@ import { ReportsModule } from './modules/reports';
 import { StrikesModule } from './modules/strikes';
 import { DmcaModule } from './modules/dmca';
 import { RedisModule } from './modules/redis/redis.module';
+import { PreviewLinksModule } from './modules/preview-links/preview-links.module';
 import { User } from './entities/user.entity';
 
 @Module({
@@ -80,6 +83,9 @@ import { User } from './entities/user.entity';
     StrikesModule,
     DmcaModule,
     VerificationModule,
+    StemsModule,
+    DownloadsModule,
+    PreviewLinksModule,
     TypeOrmModule.forFeature([User]),
   ],
 })

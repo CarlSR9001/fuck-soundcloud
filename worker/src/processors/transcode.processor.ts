@@ -7,12 +7,13 @@ import { Job, Queue } from 'bullmq';
 import { TranscodeJobData, TranscodeJobResult, FINGERPRINT_JOB } from '@soundcloud-clone/shared';
 import { getDataSource } from '../config/typeorm.config';
 import { StorageService } from '../services/storage.service';
-import { extractMetadata, transcodeToHLS } from '../services/ffmpeg.service';
+import { extractMetadata, transcodeToHLS, transcodeToHLSLossless, isLosslessFormat } from '../services/ffmpeg.service';
 import {
   TrackVersion,
   Asset,
   Transcode,
   TranscodeStatus,
+  TranscodeFormat,
 } from '../../../api/src/entities';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -71,6 +72,10 @@ export async function processTranscodeJob(
     const metadata = await extractMetadata(inputPath);
     await job.updateProgress(25);
 
+    // Check if source is lossless
+    const isLossless = await isLosslessFormat(inputPath);
+    console.log(`[Transcode] Source is ${isLossless ? 'lossless' : 'lossy'}`);
+
     // Update track version with metadata
     await trackVersionRepo.update(version_id, {
       duration_ms: metadata.duration_ms,
@@ -78,13 +83,27 @@ export async function processTranscodeJob(
       channels: metadata.channels,
     });
 
-    // Transcode to HLS Opus format
-    console.log(`[Transcode] Transcoding to HLS Opus (160kbps)`);
+    // Determine which format to transcode based on job format parameter
+    const isLosslessTranscode = format === TranscodeFormat.HLS_ALAC;
+
+    if (isLosslessTranscode && !isLossless) {
+      throw new Error('Cannot create lossless transcode from lossy source');
+    }
+
+    // Transcode to requested format
+    const formatLabel = isLosslessTranscode ? 'HLS ALAC (lossless)' : 'HLS Opus (160kbps)';
+    console.log(`[Transcode] Transcoding to ${formatLabel}`);
     const outputDir = path.join(workDir, 'output');
     await fs.promises.mkdir(outputDir, { recursive: true });
 
     const playlistPath = path.join(outputDir, 'playlist.m3u8');
-    await transcodeToHLS(inputPath, outputDir, playlistPath);
+
+    if (isLosslessTranscode) {
+      await transcodeToHLSLossless(inputPath, outputDir, playlistPath);
+    } else {
+      await transcodeToHLS(inputPath, outputDir, playlistPath);
+    }
+
     await job.updateProgress(80);
 
     // Upload segments and playlist to MinIO

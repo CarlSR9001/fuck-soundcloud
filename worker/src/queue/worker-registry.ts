@@ -14,6 +14,7 @@ import {
   ANALYTICS_ROLLUP_JOB,
   FINGERPRINT_JOB,
   DISTRIBUTION_JOB,
+  MP3_TRANSCODE_JOB,
 } from '@soundcloud-clone/shared';
 import {
   processTranscodeJob,
@@ -23,6 +24,7 @@ import {
   processAnalyticsRollupJob,
   processFingerprintJob,
   processDistributionJob,
+  processMp3TranscodeJob,
 } from '../processors';
 
 export class WorkerRegistry {
@@ -89,6 +91,13 @@ export class WorkerRegistry {
       concurrency: this.config.concurrency.distribution, // Only one distribution job should run at a time
     });
     this.queueManager.registerWorker(DISTRIBUTION_JOB, distributionWorker);
+
+    // Register MP3 transcode worker
+    const mp3TranscodeWorker = new Worker(MP3_TRANSCODE_JOB, processMp3TranscodeJob, {
+      connection,
+      concurrency: this.config.concurrency.transcode, // Reuse transcode concurrency
+    });
+    this.queueManager.registerWorker(MP3_TRANSCODE_JOB, mp3TranscodeWorker);
 
     console.log('All workers registered successfully');
   }

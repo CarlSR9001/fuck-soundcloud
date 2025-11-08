@@ -1,9 +1,11 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchTrack, ApiError } from '@/lib/api';
-import { AudioPlayer, ShareButton } from '@/components';
+import { AudioPlayer, ShareButton, StemsPanel } from '@/components';
 import { Container } from '@/components';
 import { branding } from '@/config';
+import { PlayerClient } from './PlayerClient';
+import { VersionControls } from './VersionControls';
 
 interface PlayerPageProps {
   params: {
@@ -42,7 +44,7 @@ export async function generateMetadata({
  *
  * Fetches track data server-side and passes to client component.
  */
-export default async function PlayerPage({ params }: PlayerPageProps) {
+export default async function PlayerPage({ params, searchParams }: PlayerPageProps & { searchParams: { v?: string } }) {
   let track;
 
   try {
@@ -54,10 +56,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     throw error;
   }
 
-  // Get the primary version
-  const primaryVersion = track.versions.find(
-    (v) => v.id === track.primary_version_id
-  ) || track.versions[0];
+  // Get version from URL param or use primary version
+  const versionId = searchParams?.v;
+  const primaryVersion = versionId
+    ? track.versions.find((v) => v.id === versionId && v.status === 'ready') ||
+      track.versions.find((v) => v.id === track.primary_version_id) ||
+      track.versions[0]
+    : track.versions.find((v) => v.id === track.primary_version_id) || track.versions[0];
 
   if (!primaryVersion) {
     return (
@@ -138,8 +143,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   </span>
                 )}
               </div>
-              <div className="mt-6">
+              <div className="mt-6 flex items-center gap-4">
                 <ShareButton trackId={track.id} />
+                <VersionControls
+                  track={track}
+                  currentVersion={primaryVersion}
+                  isOwner={false}
+                />
               </div>
             </div>
           </div>
@@ -150,6 +160,11 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           track={track}
           versionId={primaryVersion.id}
         />
+
+        {/* Stems Panel */}
+        <div className="mt-8">
+          <StemsPanel versionId={primaryVersion.id} trackOwnerId={track.owner_user_id} />
+        </div>
 
         {/* Version Selector (if multiple versions exist) */}
         {track.versions.length > 1 && (
@@ -187,6 +202,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </div>
           </div>
         )}
+
+        {/* Liner Notes Section */}
+        <PlayerClient
+          track={track}
+          primaryVersion={primaryVersion}
+          isOwner={false}
+        />
       </Container>
     </main>
   );

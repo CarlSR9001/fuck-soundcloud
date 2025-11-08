@@ -15,3 +15,5 @@ export * from './reports';
 export * from './strikes';
 export * from './dmca';
 export * from './verification';
+export * from './stems';
+export * from './downloads';
