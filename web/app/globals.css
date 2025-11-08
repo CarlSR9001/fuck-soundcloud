@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Global Styles
+ * Year 3035 aesthetic: timeless simplicity, subtle sophistication
+ */
+
+@layer base {
+  :root {
+    /* Ensure smooth scrolling */
+    scroll-behavior: smooth;
+  }
+
+  * {
+    /* Better box-sizing */
+    box-sizing: border-box;
+  }
+
+  html {
+    /* Use system font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-neutral-800;
+    @apply font-sans;
+  }
+
+  /* Focus states - subtle and accessible */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent-500 ring-offset-2;
+  }
+}
+
+@layer components {
+  /* Container - spacious, centered */
+  .container-custom {
+    @apply mx-auto px-lg max-w-2xl;
+  }
+
+  /* Button base - minimal, refined */
+  .btn-base {
+    @apply inline-flex items-center justify-center;
+    @apply px-lg py-md rounded-lg;
+    @apply font-medium transition-all;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply btn-base bg-primary-500 text-white;
+    @apply hover:bg-primary-600 active:bg-primary-700;
+    @apply focus-visible:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply btn-base bg-neutral-100 text-neutral-800;
+    @apply hover:bg-neutral-200 active:bg-neutral-300;
+    @apply focus-visible:ring-neutral-500;
+  }
+
+  .btn-ghost {
+    @apply btn-base bg-transparent text-neutral-700;
+    @apply hover:bg-neutral-100 active:bg-neutral-200;
+    @apply focus-visible:ring-neutral-500;
+  }
+
+  /* Card - clean surface with subtle depth */
+  .card {
+    @apply bg-surface rounded-xl shadow-md;
+    @apply border border-border;
+  }
+
+  /* Input - minimal, focused */
+  .input-base {
+    @apply w-full px-md py-md rounded-lg;
+    @apply bg-surface border border-border;
+    @apply text-neutral-800 placeholder:text-neutral-400;
+    @apply transition-colors;
+    @apply focus:outline-none focus:border-accent-500 focus:ring-1 focus:ring-accent-500;
+  }
+}
+
+@layer utilities {
+  /* Text utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Animation utilities - smooth, purposeful */
+  .animate-fade-in {
+    animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
