@@ -10,7 +10,7 @@ import {
   jwtConfig,
   queueConfig,
 } from './config';
-import { LoggerMiddleware } from './common/middleware';
+import { LoggerMiddleware, BanCheckMiddleware } from './common/middleware';
 import {
   HealthModule,
   AuthModule,
@@ -22,10 +22,19 @@ import {
   AnalyticsModule,
   ReactionsModule,
   CommentsModule,
+  ContributionsModule,
+  CharitiesModule,
+  PaymentsModule,
+  VerificationModule,
 } from './modules';
 import { StorageModule } from './modules/storage';
 import { StreamModule } from './modules/stream';
 import { TagsModule } from './modules/tags/tags.module';
+import { ReportsModule } from './modules/reports';
+import { StrikesModule } from './modules/strikes';
+import { DmcaModule } from './modules/dmca';
+import { RedisModule } from './modules/redis/redis.module';
+import { User } from './entities/user.entity';
 
 @Module({
   imports: [
@@ -50,6 +59,7 @@ import { TagsModule } from './modules/tags/tags.module';
       }),
       inject: [redisConfig.KEY],
     }),
+    RedisModule,
     StorageModule,
     HealthModule,
     AuthModule,
@@ -63,10 +73,19 @@ import { TagsModule } from './modules/tags/tags.module';
     AnalyticsModule,
     ReactionsModule,
     CommentsModule,
+    PaymentsModule,
+    ContributionsModule,
+    CharitiesModule,
+    ReportsModule,
+    StrikesModule,
+    DmcaModule,
+    VerificationModule,
+    TypeOrmModule.forFeature([User]),
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LoggerMiddleware).forRoutes('*');
+    consumer.apply(BanCheckMiddleware).forRoutes('*');
   }
 }

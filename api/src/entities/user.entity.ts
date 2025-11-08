@@ -38,6 +38,15 @@ export class User {
   @Column({ default: false })
   is_admin: boolean;
 
+  @Column({ default: false })
+  is_banned: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  ban_reason: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  banned_at: Date | null;
+
   @CreateDateColumn()
   created_at: Date;
 

@@ -15,6 +15,8 @@ export interface QueueConfig {
     artwork: number;
     loudness: number;
     analytics: number;
+    fingerprint: number;
+    distribution: number;
   };
   retries: {
     attempts: number;
@@ -41,6 +43,8 @@ export function loadQueueConfig(): QueueConfig {
       artwork: parseInt(process.env.ARTWORK_CONCURRENCY || '4', 10),
       loudness: parseInt(process.env.LOUDNESS_CONCURRENCY || '4', 10),
       analytics: parseInt(process.env.ANALYTICS_CONCURRENCY || '1', 10),
+      fingerprint: parseInt(process.env.FINGERPRINT_CONCURRENCY || '2', 10),
+      distribution: parseInt(process.env.DISTRIBUTION_CONCURRENCY || '1', 10),
     },
     retries: {
       attempts: parseInt(process.env.JOB_RETRY_ATTEMPTS || '3', 10),

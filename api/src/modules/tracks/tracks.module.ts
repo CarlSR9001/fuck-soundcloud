@@ -3,12 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
 import { TracksController } from './tracks.controller';
 import { TracksService } from './tracks.service';
-import { Track, TrackVersion, Transcode } from '../../entities';
+import { Track, TrackVersion, Transcode, CopyrightAttestation } from '../../entities';
 import { TagsModule } from '../tags/tags.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Track, TrackVersion, Transcode]),
+    TypeOrmModule.forFeature([Track, TrackVersion, Transcode, CopyrightAttestation]),
     BullModule.registerQueue(
       { name: 'transcode' },
       { name: 'waveform' },

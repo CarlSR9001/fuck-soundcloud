@@ -12,6 +12,8 @@ import {
   ARTWORK_EXTRACT_JOB,
   LOUDNESS_JOB,
   ANALYTICS_ROLLUP_JOB,
+  FINGERPRINT_JOB,
+  DISTRIBUTION_JOB,
 } from '@soundcloud-clone/shared';
 import {
   processTranscodeJob,
@@ -19,6 +21,8 @@ import {
   processArtworkExtractJob,
   processLoudnessJob,
   processAnalyticsRollupJob,
+  processFingerprintJob,
+  processDistributionJob,
 } from '../processors';
 
 export class WorkerRegistry {
@@ -71,6 +75,20 @@ export class WorkerRegistry {
       concurrency: this.config.concurrency.analytics,
     });
     this.queueManager.registerWorker(ANALYTICS_ROLLUP_JOB, analyticsWorker);
+
+    // Register fingerprint worker
+    const fingerprintWorker = new Worker(FINGERPRINT_JOB, processFingerprintJob, {
+      connection,
+      concurrency: this.config.concurrency.fingerprint,
+    });
+    this.queueManager.registerWorker(FINGERPRINT_JOB, fingerprintWorker);
+
+    // Register distribution worker
+    const distributionWorker = new Worker(DISTRIBUTION_JOB, processDistributionJob, {
+      connection,
+      concurrency: this.config.concurrency.distribution, // Only one distribution job should run at a time
+    });
+    this.queueManager.registerWorker(DISTRIBUTION_JOB, distributionWorker);
 
     console.log('All workers registered successfully');
   }

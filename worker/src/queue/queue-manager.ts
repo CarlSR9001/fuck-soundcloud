@@ -11,6 +11,8 @@ import {
   ARTWORK_EXTRACT_JOB,
   LOUDNESS_JOB,
   ANALYTICS_ROLLUP_JOB,
+  FINGERPRINT_JOB,
+  DISTRIBUTION_JOB,
 } from '@soundcloud-clone/shared';
 
 export class QueueManager {
@@ -36,6 +38,8 @@ export class QueueManager {
       ARTWORK_EXTRACT_JOB,
       LOUDNESS_JOB,
       ANALYTICS_ROLLUP_JOB,
+      FINGERPRINT_JOB,
+      DISTRIBUTION_JOB,
     ];
 
     for (const name of queueNames) {

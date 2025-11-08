@@ -51,6 +51,13 @@ export class SearchService {
           to_tsvector('english', COALESCE(track.description_md, '')))
           @@ plainto_tsquery('english', :query)`,
         { query },
+      )
+      .andWhere(
+        `NOT EXISTS (
+          SELECT 1 FROM reports
+          WHERE reports.track_id = track.id
+          AND reports.status IN ('pending', 'under_review')
+        )`,
       );
 
     if (tagFilter) {
