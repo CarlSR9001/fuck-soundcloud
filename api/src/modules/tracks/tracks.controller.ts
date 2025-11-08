@@ -5,34 +5,38 @@ import {
   Patch,
   Body,
   Param,
+  Request,
 } from '@nestjs/common';
 import { TracksService } from './tracks.service';
+import { CreateTrackDto, UpdateTrackDto, CreateVersionDto } from './dto';
 
-@Controller('tracks')
+@Controller('api/v1/tracks')
 export class TracksController {
   constructor(private readonly tracksService: TracksService) {}
 
   @Post()
-  async create(@Body() createDto: any) {
-    // UNIMPLEMENTED: Track creation will be implemented by business logic agent
-    return { message: 'UNIMPLEMENTED: create track endpoint' };
+  async create(@Body() dto: CreateTrackDto, @Request() req: any) {
+    // TODO: Get user ID from JWT token after auth is implemented
+    // For now, we'll use a placeholder
+    const ownerId = req.user?.id || 'temp-user-id';
+    return await this.tracksService.create(ownerId, dto);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    // UNIMPLEMENTED: Track retrieval will be implemented by business logic agent
-    return { message: 'UNIMPLEMENTED: get track endpoint' };
+    return await this.tracksService.findOne(id);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateDto: any) {
-    // UNIMPLEMENTED: Track update will be implemented by business logic agent
-    return { message: 'UNIMPLEMENTED: update track endpoint' };
+  async update(@Param('id') id: string, @Body() dto: UpdateTrackDto) {
+    return await this.tracksService.update(id, dto);
   }
 
   @Post(':id/versions')
-  async createVersion(@Param('id') id: string, @Body() versionDto: any) {
-    // UNIMPLEMENTED: Version creation will be implemented by business logic agent
-    return { message: 'UNIMPLEMENTED: create version endpoint' };
+  async createVersion(
+    @Param('id') id: string,
+    @Body() dto: CreateVersionDto,
+  ) {
+    return await this.tracksService.createVersion(id, dto);
   }
 }

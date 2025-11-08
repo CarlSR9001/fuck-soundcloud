@@ -1,19 +1,18 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { UploadService } from './upload.service';
+import { InitMultipartDto, CompleteMultipartDto } from './dto';
 
-@Controller('upload')
+@Controller('api/v1/upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('multipart/init')
-  async initMultipartUpload(@Body() initDto: any) {
-    // UNIMPLEMENTED: Multipart upload initialization will be implemented by business logic agent
-    return { message: 'UNIMPLEMENTED: multipart/init endpoint' };
+  async initMultipartUpload(@Body() dto: InitMultipartDto) {
+    return await this.uploadService.initMultipartUpload(dto);
   }
 
   @Post('multipart/complete')
-  async completeMultipartUpload(@Body() completeDto: any) {
-    // UNIMPLEMENTED: Multipart upload completion will be implemented by business logic agent
-    return { message: 'UNIMPLEMENTED: multipart/complete endpoint' };
+  async completeMultipartUpload(@Body() dto: CompleteMultipartDto) {
+    return await this.uploadService.completeMultipartUpload(dto);
   }
 }

@@ -18,6 +18,8 @@ import {
   TracksModule,
   UsersModule,
 } from './modules';
+import { StorageModule } from './modules/storage';
+import { StreamModule } from './modules/stream';
 
 @Module({
   imports: [
@@ -42,11 +44,13 @@ import {
       }),
       inject: [redisConfig.KEY],
     }),
+    StorageModule,
     HealthModule,
     AuthModule,
     UploadModule,
     TracksModule,
     UsersModule,
+    StreamModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -6,6 +6,7 @@
 import { loadQueueConfig } from './config/queue.config';
 import { loadStorageConfig } from './config/storage.config';
 import { loadDatabaseConfig } from './config/database.config';
+import { createDataSource, closeDataSource } from './config/typeorm.config';
 import { QueueManager } from './queue/queue-manager';
 import { WorkerRegistry } from './queue/worker-registry';
 import { HealthCheckService } from './health/health-check';
@@ -22,6 +23,10 @@ async function bootstrap() {
   console.log(`Redis: ${queueConfig.redis.host}:${queueConfig.redis.port}`);
   console.log(`MinIO: ${storageConfig.endpoint}:${storageConfig.port}`);
   console.log(`Database: ${databaseConfig.host}:${databaseConfig.port}/${databaseConfig.database}`);
+
+  // Initialize TypeORM DataSource
+  await createDataSource();
+  console.log('Database connection established');
 
   // Initialize queue manager
   const queueManager = new QueueManager(queueConfig);
@@ -45,6 +50,7 @@ async function bootstrap() {
     try {
       await healthCheck.stop();
       await queueManager.close();
+      await closeDataSource();
       console.log('Graceful shutdown complete');
       process.exit(0);
     } catch (error) {
