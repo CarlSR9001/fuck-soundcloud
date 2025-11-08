@@ -1,0 +1,77 @@
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+yarn.lock
+
+# Next.js build output
+.next
+out
+build
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Testing
+coverage
+.nyc_output
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__
+__mocks__
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+*.md
+docs
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+.circleci
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Logs
+logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Storybook
+.storybook
+storybook-static
+
+# Next.js cache
+.next/cache
